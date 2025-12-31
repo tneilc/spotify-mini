@@ -1,0 +1,16 @@
+spotify-mini
+
+*.exe
+*.test
+*.out
+*.o
+
+token.json
+spotify_token.json
+.env
+
+go.work
+
+.vscode/
+.idea/
+.DS_Store
