@@ -22,12 +22,10 @@ var (
 	titleStyle = lipgloss.NewStyle().
 			Foreground(colText).
 			Bold(true).
-			Width(30).
 			Align(lipgloss.Center)
 
 	artistStyle = lipgloss.NewStyle().
 			Foreground(colDim).
-			Width(30).
 			Align(lipgloss.Center)
 
 	btnStyle = lipgloss.NewStyle().
@@ -41,7 +39,6 @@ var (
 
 	barContainerStyle = lipgloss.NewStyle().
 				Foreground(colActive).
-				Width(30).
 				Align(lipgloss.Center).
 				MarginTop(0)
 
@@ -51,19 +48,18 @@ var (
 			MarginTop(1)
 
 	queueItemStyle = lipgloss.NewStyle().
-			Foreground(colDim).
-			Width(30)
+			Foreground(colDim)
 
 	queueSelectedStyle = lipgloss.NewStyle().
 				Foreground(colActive).
-				Bold(true).
-				Width(30)
+				Bold(true)
 )
 
 type Model struct {
 	token *api.Token
 
 	focusMode int
+
 	choices   []string
 	btnCursor int
 
@@ -152,7 +148,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				if m.queueCursor < len(m.queue)-1 {
 					m.queueCursor++
-					rows := max(m.queueViewHeight(), 1)
+					rows := m.queueViewHeight()
+					if rows < 1 {
+						rows = 1
+					}
 					if m.queueCursor >= m.queueOffset+rows {
 						m.queueOffset++
 					}
@@ -203,9 +202,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if err == nil {
 							m.msg = "Skipped to: " + targetItem.Name
 							usedContext = true
-						} else {
-
-							m.msg = "Context skip failed, trying direct..."
 						}
 					}
 
@@ -224,14 +220,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 
 						if len(uris) > 0 {
-							err := api.PlaySong(m.token, uris)
-							if err != nil {
-								m.msg = "Error: " + err.Error()
-							} else {
-								m.msg = "Playing: " + targetItem.Name
-							}
-						} else {
-							m.msg = "Error: No valid link found"
+							api.PlaySong(m.token, uris)
+							m.msg = "Playing: " + targetItem.Name
 						}
 					}
 
@@ -242,6 +232,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	return m, nil
+}
+
+func truncate(s string, max int) string {
+	r := []rune(s)
+	if len(r) <= max {
+		return s
+	}
+	if max < 3 {
+		return string(r[:max])
+	}
+	return string(r[:max-3]) + "..."
 }
 
 func (m Model) View() string {
@@ -269,21 +270,16 @@ func (m Model) View() string {
 		}
 	}
 
-	maxTextLen := availWidth - 2
-	if len(song) > maxTextLen {
-		song = song[:maxTextLen-3] + "..."
-	}
-	if len(artist) > maxTextLen {
-		artist = artist[:maxTextLen-3] + "..."
-	}
-
 	header := lipgloss.JoinVertical(lipgloss.Center,
-		titleStyle.Width(availWidth).Render(song),
-		artistStyle.Width(availWidth).Render(artist),
+		titleStyle.Width(availWidth).Render(truncate(song, availWidth-2)),
+		artistStyle.Width(availWidth).Render(truncate(artist, availWidth-2)),
 	)
 
 	barWidth := 25
-	filledLen := min(int(float64(barWidth)*progress), barWidth)
+	filledLen := int(float64(barWidth) * progress)
+	if filledLen > barWidth {
+		filledLen = barWidth
+	}
 
 	filled := strings.Repeat("━", filledLen)
 	empty := ""
@@ -317,21 +313,28 @@ func (m Model) View() string {
 	if len(m.queue) > 0 && itemsToShow > 0 {
 		queueView += queueTitleStyle.Render("Next Up:") + "\n"
 
-		end := min(m.queueOffset+itemsToShow, len(m.queue))
+		end := m.queueOffset + itemsToShow
+		if end > len(m.queue) {
+			end = len(m.queue)
+		}
 
 		for i := m.queueOffset; i < end; i++ {
 			item := m.queue[i]
 			name := item.Name
-			queueMaxLen := availWidth - 4
-			if len(name) > queueMaxLen {
-				if queueMaxLen > 3 {
-					name = name[:queueMaxLen-3] + "..."
-				} else if queueMaxLen > 0 {
-					name = name[:queueMaxLen]
-				}
+
+			prefix := fmt.Sprintf("%d. ", i+1)
+			prefixLen := len(prefix)
+
+			maxNameLen := availWidth - prefixLen - 2
+
+			if maxNameLen < 5 {
+				maxNameLen = 5
 			}
 
-			line := fmt.Sprintf("%d. %s", i+1, name)
+			name = truncate(name, maxNameLen)
+
+			line := prefix + name
+
 			st := queueItemStyle.Width(availWidth)
 			if m.focusMode == 1 && m.queueCursor == i {
 				st = queueSelectedStyle.Width(availWidth)
@@ -341,12 +344,12 @@ func (m Model) View() string {
 			}
 			queueView += st.Render(line) + "\n"
 		}
-		if m.queueOffset > 0 {
-			queueView = "↑\n" + queueView
-		}
-		if end < len(m.queue) {
-			queueView += "↓"
-		}
+		// if m.queueOffset > 0 {
+		// 	queueView = "↑\n" + queueView
+		// }
+		// if end < len(m.queue) {
+		// 	queueView += "↓"
+		// }
 	} else {
 		queueView = ""
 	}
