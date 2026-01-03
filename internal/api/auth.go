@@ -15,9 +15,10 @@ import (
 )
 
 const (
+	Port        = "8000"
 	AuthURL     = "https://accounts.spotify.com/authorize"
 	TokenURL    = "https://accounts.spotify.com/api/token"
-	RedirectURI = "http://127.0.0.1:8000/callback"
+	RedirectURI = "http://127.0.0.1:" + Port + "/callback"
 	TokenFile   = "~/.local/state/spotify_mini/token.json"
 )
 
@@ -64,7 +65,7 @@ func startWebLogin(clientID, clientSecret string) (*Token, error) {
 	exec.Command("xdg-open", loginURL).Start()
 
 	codeChan := make(chan string)
-	srv := &http.Server{Addr: ":8000"}
+	srv := &http.Server{Addr: ":" + Port}
 
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")

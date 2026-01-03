@@ -12,7 +12,7 @@ A lightweight, terminal-based Spotify controller written in Go. Designed for Arc
         
     -   Create an App.
         
-    -   Set **Redirect URI** to: `http://localhost:8080/callback`
+    -   Set **Redirect URI** to: `http://localhost:8000/callback` 
         
     -   Save your **Client ID** and **Client Secret**.
         
@@ -64,7 +64,6 @@ A lightweight, terminal-based Spotify controller written in Go. Designed for Arc
             kitty --class mini-spotify -e "$BIN" -mode ui
             ;;
     esac
-    
     ```
     
 
@@ -83,10 +82,10 @@ windowrulev2 = float, class:^(mini-spotify)$
 windowrulev2 = size 400 500, class:^(mini-spotify)$
 windowrulev2 = move 1500 50, class:^(mini-spotify)$
 windowrulev2 = pin, class:^(mini-spotify)$
-# Keeps focus on the window until closed, preventing mouse hover from stealing it
-# q quits the app btw
-windowrulev2 = stayfocused, class:^(mini-spotify)$
 
+# Keeps focus on the window until closed
+windowrulev2 = stayfocused, class:^(mini-spotify)$
+# q quits the app btw
 
 # Keybinds for audio keys 
 bindl = , XF86AudioNext, exec, ~/.local/bin/spotify-waybar.sh -cmd next
@@ -97,7 +96,6 @@ bindl = , XF86AudioPlay, exec, ~/.local/bin/spotify-waybar.sh -cmd toggle
 bind =  SUPER , n , exec, ~/.local/bin/spotify-waybar.sh -cmd next
 bind =  SUPER , b , exec, ~/.local/bin/spotify-waybar.sh -cmd prev
 bind =  SUPER , p , exec, ~/.local/bin/spotify-waybar.sh -cmd toggle
-
 ```
 
 ### 2. Waybar (`~/.config/waybar/config`)
