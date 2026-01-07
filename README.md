@@ -2,6 +2,8 @@
 
 A lightweight, terminal-based Spotify controller written in Go. Designed for Arch Linux + Hyprland + Waybar.
 
+<img width="1920" height="1080" alt="ss" src="https://github.com/user-attachments/assets/65a6dfc3-0ba4-47bf-bba0-10b36275908a" />
+
 ## Prerequisites
 
 1.  **Spotify Premium** (Required for API control).
@@ -40,7 +42,6 @@ A lightweight, terminal-based Spotify controller written in Go. Designed for Arc
     
     case "$1" in
         "daemon")
-            # Replaces shell with binary to save RAM
             exec "$BIN" -mode daemon
             ;;
     
